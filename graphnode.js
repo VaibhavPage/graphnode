@@ -120,7 +120,7 @@ class Graph {
     }
 
     getNeighbors(vertex) {
-        return this.edges.adjList[vertex];
+        return this.adjList[vertex];
     }
 
 }
