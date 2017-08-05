@@ -1,0 +1,29 @@
+{
+  "name": "graphnode",
+  "version": "1.0.0",
+  "description": "Node module for graph algorithms",
+  "main": "graphnode.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VaibhavPage/graphnode.git"
+  },
+  "keywords": [
+    "Graph",
+    "GraphAlgorithm",
+    "ShortestPath",
+    "MinimumSpanningTree",
+    "Flow"
+  ],
+  "author": "Vaibhav Page",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VaibhavPage/graphnode/issues"
+  },
+  "homepage": "https://github.com/VaibhavPage/graphnode#readme",
+  "dependencies": {
+    "queue-op": "^1.0.0"
+  }
+}
