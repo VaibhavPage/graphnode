@@ -12,6 +12,8 @@
   },
   "keywords": [
     "Graph",
+    "BreadthFirstSearch",
+    "DepthFirstSearch",
     "GraphAlgorithm",
     "ShortestPath",
     "MinimumSpanningTree",
