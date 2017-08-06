@@ -62,7 +62,7 @@ class Edge {
         this._source = source;
         this._destination = destination;
         this._cost = cost;
-        this._label = label;
+        this._label = label ? label : GraphHelper.createUniqueIdOrLabel();
     }
 
     getSource() {
@@ -146,6 +146,10 @@ class GraphHelper {
         distance = distance + 1;
     }
 
+    static storeGraph(graph) {
+        this.graphStore.push(graph);
+    }
+
 }
 
 class Graph {
@@ -153,7 +157,7 @@ class Graph {
     constructor(vertices, edges, name, isDirected) {
         this._vertices = vertices;
         this._edges = edges;
-        this._name = name;
+        this._name = name ? name : GraphHelper.createUniqueIdOrLabel();
         this._adjList = {};
         this._isDirected = isDirected ? isDirected : false;
         this.initNeighbors();
@@ -252,6 +256,9 @@ class Graph {
 
 }
 
+
+var graphStore = {};
+
 /**
  * API
  */
@@ -260,3 +267,20 @@ exports.Vertex = Vertex;
 exports.Edge = Edge;
 
 exports.Graph = Graph;
+
+exports.saveGraphInStore = function (graph) {
+    if(!graphStore.hasOwnProperty(graph.getGraphName())) {
+        graphStore[graph.getGraphName()] = graph;
+        return true;
+    }
+    return false;
+};
+
+exports.getGraphFromStore = function (name) {
+    if(graphStore.hasOwnProperty(name)) {
+        return graphStore[name];
+    }
+
+    return null;
+
+};
