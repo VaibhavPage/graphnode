@@ -11,11 +11,12 @@ const COLOR = {
 };
 
 class Vertex {
-    constructor(parent, value, color, label) {
+    constructor(parent, value, label) {
         this._parent = parent;
         this._value = value;
-        this._color = color;
-        this._label = label;
+        this._color = COLOR.WHITE;
+        this._label = label ? label : GraphHelper.createUniqueIdOrLabel();
+        this._logicalDistance = Number.MAX_VALUE;
     }
 
     get parent() {
@@ -32,6 +33,10 @@ class Vertex {
 
     getLabel() {
         return this._label;
+    }
+
+    getLogicalDistance() {
+        return this._logicalDistance;
     }
 
 
@@ -53,10 +58,11 @@ class Vertex {
 }
 
 class Edge {
-    constructor(source, destination, cost) {
+    constructor(source, destination, cost, label) {
         this._source = source;
         this._destination = destination;
         this._cost = cost;
+        this._label = label;
     }
 
     getSource() {
@@ -71,6 +77,10 @@ class Edge {
         return this._cost;
     }
 
+    getLabel() {
+        return this._label;
+    }
+
 
     set source(value) {
         this._source = value;
@@ -83,102 +93,170 @@ class Edge {
     set cost(value) {
         this._cost = value;
     }
+
+    setLabel(value) {
+        this._label = value;
+    }
+}
+
+class GraphHelper {
+
+    static initVertices(vertices) {
+        vertices.forEach(function (vertex) {
+            vertex._color = COLOR.WHITE;
+            vertex._parent = null;
+            vertex._logicalDistance = Number.MAX_VALUE;
+        });
+
+        var source_vertex = vertices[0];
+        source_vertex._logicalDistance = 0;
+        source_vertex._color = COLOR.WHITE;
+
+    }
+
+    static createUniqueIdOrLabel() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
+    }
+
+    static depthFirstSearchUtil(graph, vertex, distance, result, searchValue) {
+
+        distance = distance + 1;
+        vertex._logicalDistance = distance;
+        vertex._color = COLOR.GREY;
+
+        var neighbors = graph.getNeighbors(vertex);
+        neighbors.forEach(function (neighbor) {
+            if(neighbor._color === COLOR.WHITE) {
+                neighbor._parent = vertex;
+                GraphHelper.depthFirstSearchUtil(graph, neighbor, distance, result, searchValue);
+            }
+        });
+
+        if(searchValue == vertex._label) {
+            result.push(vertex);
+        }
+
+        vertex._color = COLOR.BLACK;
+        distance = distance + 1;
+    }
+
 }
 
 class Graph {
 
     constructor(vertices, edges, name, isDirected) {
-        this.vertices = vertices;
-        this.edges = edges;
-        this.name = name;
-        this.adjList = [];
-        this.isDirected = isDirected ? isDirected : false;
+        this._vertices = vertices;
+        this._edges = edges;
+        this._name = name;
+        this._adjList = {};
+        this._isDirected = isDirected ? isDirected : false;
+        this.initNeighbors();
     }
 
     getVertices() {
-        return this.vertices;
+        return this._vertices;
     }
 
     getEdges() {
-        return this.edges;
+        return this._edges;
     }
 
     getGraphName() {
-        return this.name;
+        return this._name;
     }
 
-    initNeighbors(vertex) {
+    addVertex(vertex) {
+        this._vertices.push(vertex);
+    }
+
+    addEdge(edge) {
+        this._edges.push(edge);
+    }
+
+    initNeighbors() {
         var that = this;
-        this.edges.forEach(function (edge) {
-            that.adjList[edge.source] = that.adjList[edge.source] ? that.adjList[edge.source] : [];
-            that.adjList[edge.source].push(that.adjList[edge.destination]);
-            if(!that.isDirected) {
-                that.adjList[edge.destination] = that.adjList[edge.destination] ? that.adjList[edge.destination] : [];
-                that.adjList[edge.destination].push(that.adjList[edge.source]);
+        this._edges.forEach(function (edge) {
+            that._adjList[edge._source._label] = that._adjList[edge._source._label] ? that._adjList[edge._source._label] : new Array();
+            that._adjList[edge._source._label].push(edge._destination);
+            if(!that._isDirected) {
+                that._adjList[edge._destination._label] = that._adjList[edge._destination._label] ? that._adjList[edge._destination._label] : new Array();
+                that._adjList[edge._destination._label].push(edge._source);
             }
         });
     }
 
     getNeighbors(vertex) {
-        return this.adjList[vertex];
+        return this._adjList[vertex._label];
     }
 
-}
+    breadthFirstSearch (searchValue) {
+        if(!this._vertices || !this._edges) {
+            return null;
+        }
 
+        var result = [];
+        var vertices = this.getVertices();
+
+        GraphHelper.initVertices(vertices);
+
+        var queue = queue_op.initQueue();
+        queue.addItem(vertices[0]);
+
+        while(queue.size > 0) {
+            var current_source_vertex = queue.pop();
+            var neighbour_vertices = this.getNeighbors(current_source_vertex);
+            neighbour_vertices.forEach(function (neighbor_vertex) {
+                if(neighbor_vertex._color === COLOR.WHITE) {
+                    neighbor_vertex._parent = current_source_vertex;
+                    neighbor_vertex._logicalDistance = current_source_vertex._logicalDistance + 1;
+                    neighbor_vertex.color = COLOR.GREY;
+                    queue.addItem(neighbor_vertex);
+                }
+            });
+            current_source_vertex._color = COLOR.BLACK;
+            if(searchValue == current_source_vertex._label) {
+                result.push(current_source_vertex);
+            }
+        }
+
+        return result;
+
+    }
+
+    depthFirstSearch(searchValue) {
+        if (!this._vertices || !this._edges) {
+            return null;
+        }
+
+        var that = this;
+        var result = [];
+        var vertices = this.getVertices();
+        GraphHelper.initVertices(vertices);
+        var distance = 0;
+
+        vertices.forEach(function (vertex) {
+            if(vertex._color === COLOR.WHITE) {
+                GraphHelper.depthFirstSearchUtil(that, vertex, distance, result, searchValue);
+            }
+        });
+
+        return result;
+    }
+
+
+}
 
 /**
  * API
  */
-exports.breadthFirstSearch = function (graph, searchValue) {
-    if(!graph) {
-        throw new Error("Empty or undefined graph");
-    }
+exports.Vertex = Vertex;
 
-    var result = [];
-    var vertices = graph.getVertices();
+exports.Edge = Edge;
 
-    vertices.forEach(function (vertex) {
-        vertex._color = COLOR.WHITE;
-        vertex._parent = null;
-        vertex._value = Number.MAX_VALUE;
-    });
-
-    var queue = queue_op.initQueue();
-    queue.addItem(vertices[0]);
-
-    var source = queue.peek();
-    source._value = 0;
-    source._color = COLOR.GREY;
-
-    while(queue.size > 0) {
-        var current_source_vertex = queue.pop();
-        var neighbour_vertices = graph.getNeighbors(current_source_vertex);
-        neighbour_vertices.forEach(function (neighbor_vertex) {
-            if(neighbor_vertex._color === COLOR.WHITE) {
-                neighbor_vertex._parent = current_source_vertex;
-                neighbor_vertex._value = current_source_vertex.value + 1;
-                neighbor_vertex.color = COLOR.GREY;
-                queue.addItem(neighbor_vertex);
-            }
-        });
-        current_source_vertex.color = COLOR.BLACK;
-        if(searchValue == current_source_vertex._value) {
-            result.push(current_source_vertex);
-        }
-    }
-
-    return result;
-
-};
-
-exports.createVertex = function (parent, value, color, label) {
-    return new Vertex(parent, value, color, label);
-};
-
-exports.createEdge = function (source, destination, cost) {
-    return new Edge(source, destination, cost);
-}
-
-exports.createGraph = function (vertices, edges, name, isDirected) {
-    return new Graph(vertices, edges, name, isDirected);
-};
+exports.Graph = Graph;

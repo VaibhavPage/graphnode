@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/VaibhavPage/graphnode#readme",
   "dependencies": {
-    "queue-op": "^1.0.0"
+    "queue-op": "^1.0.0",
+    "stack-op": "^1.0.2"
   }
 }
